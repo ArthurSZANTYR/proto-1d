@@ -25,10 +25,16 @@ AccelData accelData;
 
 #define STEP_THRESHOLD 0.48  // Seuil pour détecter un pas
 #define IMU_INTERVAL 50  // Intervalle de lecture IMU (ms)
+#define WINDOW_DURATION 20000 // Fenêtre de 20 secondes (en ms)
+#define WINDOW_SIZE (WINDOW_DURATION / IMU_INTERVAL) // Taille de la fenêtre en échantillons
+
 
 // Variables pour la détection des pas
 int stepCount = 0;
 float previousMagnitude = 0;
+int stepHistory[WINDOW_SIZE] = {0}; // Tableau circulaire pour stocker les pas
+int stepIndex = 0;
+int totalStepsInWindow = 0;
 
 // Variables pour gérer le temps
 unsigned long previousMillisLEDs = 0;
@@ -85,13 +91,26 @@ void loop() {
         float magnitude = sqrt(sq(accelData.accelX) + sq(accelData.accelY) + sq(accelData.accelZ));
 
         // Détection de variation significative (pas)
+        int stepDetected = 0;
         if (abs(magnitude - previousMagnitude) > STEP_THRESHOLD) {
+            stepDetected = 1;
             stepCount++;
             Serial.print("Pas détecté! Nombre de pas: ");
             Serial.println(stepCount);
         }
 
         previousMagnitude = magnitude;
+
+        // Mise à jour du tableau circulaire des pas
+        totalStepsInWindow -= stepHistory[stepIndex]; // Retirer l'ancien pas de la somme
+        stepHistory[stepIndex] = stepDetected;        // Ajouter le nouveau pas
+        totalStepsInWindow += stepDetected;           // Mettre à jour la somme
+        stepIndex = (stepIndex + 1) % WINDOW_SIZE;    // Avancer dans le tableau
+
+        // Calcul de la moyenne de PPM sur 20 secondes
+        float averagePPM = (totalStepsInWindow * 60.0f * 1000) / WINDOW_DURATION;
+        Serial.print("Moyenne des pas par minute (PPM) : ");
+        Serial.println(averagePPM);
     }
 
 }
