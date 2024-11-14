@@ -22,14 +22,18 @@ LEDController ledController(LED_PIN, NUM_LEDS);
 MPU6050 IMU;
 calData calib = {0};
 AccelData accelData;
-GyroData gyroData;
-MagData magData;
+
+#define STEP_THRESHOLD 0.48  // Seuil pour détecter un pas
+#define IMU_INTERVAL 50  // Intervalle de lecture IMU (ms)
+
+// Variables pour la détection des pas
+int stepCount = 0;
+float previousMagnitude = 0;
 
 // Variables pour gérer le temps
 unsigned long previousMillisLEDs = 0;
-
 unsigned long previousMillisIMU = 0;
-const long imuInterval = 50; // Fréquence de lecture IMU
+
 
 void setup() {
     Serial.begin(115200);
@@ -70,27 +74,24 @@ void loop() {
       }
     }
 
-    // Lecture IMU sans delay
-    if (currentMillis - previousMillisIMU >= imuInterval) {
+   // Lecture IMU et détection des pas
+    if (currentMillis - previousMillisIMU >= IMU_INTERVAL) {
         previousMillisIMU = currentMillis;
 
         IMU.update();
         IMU.getAccel(&accelData);
-        Serial.print(accelData.accelX); Serial.print("\t");
-        Serial.print(accelData.accelY); Serial.print("\t");
-        Serial.println(accelData.accelZ);
 
-        IMU.getGyro(&gyroData);
-        Serial.print(gyroData.gyroX); Serial.print("\t");
-        Serial.print(gyroData.gyroY); Serial.print("\t");
-        Serial.println(gyroData.gyroZ);
+        // Calcul du vecteur total d'accélération
+        float magnitude = sqrt(sq(accelData.accelX) + sq(accelData.accelY) + sq(accelData.accelZ));
 
-        if (IMU.hasMagnetometer()) {
-            IMU.getMag(&magData);
-            Serial.print(magData.magX); Serial.print("\t");
-            Serial.print(magData.magY); Serial.print("\t");
-            Serial.println(magData.magZ);
+        // Détection de variation significative (pas)
+        if (abs(magnitude - previousMagnitude) > STEP_THRESHOLD) {
+            stepCount++;
+            Serial.print("Pas détecté! Nombre de pas: ");
+            Serial.println(stepCount);
         }
+
+        previousMagnitude = magnitude;
     }
 
 }
