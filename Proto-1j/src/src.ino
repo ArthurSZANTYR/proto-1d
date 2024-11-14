@@ -12,7 +12,7 @@ int mode = 1;
 //3 - finisher
 
 // Intervalles de temps pour chaque tâche (en millisecondes)
-long intervalLEDs;     // Intervalle pour l'animation des LEDs
+long intervalLEDs = 6;     // Intervalle pour l'animation des LEDs
 
 // Objets
 LEDController ledController(LED_PIN, NUM_LEDS);
@@ -55,13 +55,6 @@ void setup() {
         while (true) {}
     }
 
-    if (mode == 1) {
-        intervalLEDs = 100;
-    }
-    if (mode == 2) {
-        intervalLEDs = 15;
-    }
-
     ledController.init(); // Initialisation des LEDs
 }
 
@@ -73,10 +66,13 @@ void loop() {
         previousMillisLEDs = currentMillis;
         
       if (mode == 1) {
-          ledController.update_fraction();
+          ledController.update_up();
       }
       if (mode == 2) {
-          ledController.update_longrun();
+          ledController.update_down();
+      }
+      else{
+        ledController.update_good();
       }
     }
 
@@ -111,6 +107,15 @@ void loop() {
         float averagePPM = (totalStepsInWindow * 60.0f * 1000) / WINDOW_DURATION;
         Serial.print("Moyenne des pas par minute (PPM) : ");
         Serial.println(averagePPM);
+
+        if (averagePPM > 200) {
+            mode = 1;  // High PPM, Red LEDs
+        } else if (averagePPM < 160) {
+            mode = 2;  // Low PPM, Blue LEDs
+        } else if (averagePPM >= 160 && averagePPM <= 200) {
+            mode = 3;  // Middle range, Green LEDs
+        }
+
     }
 
 }

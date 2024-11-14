@@ -7,6 +7,9 @@ class LEDController {
 public:
     LEDController(uint8_t pin, uint8_t numLeds);
     void init();
+    void update_good();
+    void update_up();
+    void update_down();
     void update_fraction();
     void update_longrun();
     void update_finisher();

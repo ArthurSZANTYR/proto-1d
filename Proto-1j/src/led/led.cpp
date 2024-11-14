@@ -25,7 +25,67 @@ void LEDController::update_fraction() {
     }
 }
 
-void LEDController::update_longrun() {
+
+
+void LEDController::update_up() {
+    // Variable de luminosité (de 0 à 255)
+    static uint8_t brightness = 0;
+    static bool increasing = true; // Indique si la luminosité augmente ou diminue
+
+    // Mettre à jour la luminosité progressivement
+    if (increasing) {
+        brightness += 5; // Augmente la luminosité (ajustez la valeur pour la vitesse)
+        if (brightness >= 255) {
+            brightness = 255;
+            increasing = false; // Commencer à diminuer
+        }
+    } else {
+        brightness -= 5; // Diminue la luminosité
+        if (brightness <= 0) {
+            brightness = 0;
+            increasing = true; // Recommencer à augmenter
+        }
+    }
+
+    // Appliquer la luminosité à toutes les LEDs
+    for (int i = 0; i < numLeds; i++) {
+        leds[i] = CRGB::Red;
+        leds[i].fadeToBlackBy(255 - brightness); // Ajuste la luminosité
+    }
+
+    FastLED.show();
+}
+
+void LEDController::update_down() {
+    // Variable de luminosité (de 0 à 255)
+    static uint8_t brightness = 0;
+    static bool increasing = true; // Indique si la luminosité augmente ou diminue
+
+    // Mettre à jour la luminosité progressivement
+    if (increasing) {
+        brightness += 5; // Augmente la luminosité (ajustez la valeur pour la vitesse)
+        if (brightness >= 255) {
+            brightness = 255;
+            increasing = false; // Commencer à diminuer
+        }
+    } else {
+        brightness -= 5; // Diminue la luminosité
+        if (brightness <= 0) {
+            brightness = 0;
+            increasing = true; // Recommencer à augmenter
+        }
+    }
+
+    // Appliquer la luminosité à toutes les LEDs
+    for (int i = 0; i < numLeds; i++) {
+        leds[i] = CRGB::Blue;
+        leds[i].fadeToBlackBy(255 - brightness); // Ajuste la luminosité
+    }
+
+    FastLED.show();
+}
+
+void LEDController::update_good() {
     // Variable de luminosité (de 0 à 255)
     static uint8_t brightness = 0;
     static bool increasing = true; // Indique si la luminosité augmente ou diminue
@@ -53,5 +113,7 @@ void LEDController::update_longrun() {
 
     FastLED.show();
 }
+
+
 
 
